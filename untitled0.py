@@ -13,7 +13,7 @@ df.columns[df.isna().any()].tolist()
 @author: Big data
 """
 
-
+from sklearn.ensemble import RandomForestRegressor,  GradientBoostingRegressor
 import datetime
 import seaborn as sns
 import pandas as pd
@@ -177,13 +177,18 @@ model = xgb.XGBRegressor(colsample_bytree=0.70, gamma=0.023,
                              reg_alpha=0.6, reg_lambda=1,
                              subsample=0.625, silent=1,
                              random_state =7, nthread = -1)
-'''
+
 model = xgb.XGBRegressor(colsample_bytree=0.70, gamma=0.005, 
                              learning_rate=0.02, max_depth=9, 
                              min_child_weight=1.1, n_estimators=3500,
                              reg_alpha=0.6, reg_lambda=1,
                              subsample=0.625, silent=1,
                              random_state =7, nthread = -1)
+'''
+model = GradientBoostingRegressor(n_estimators=4500, learning_rate=0.03,
+                                   max_depth=5, max_features='sqrt',
+                                   min_samples_leaf=6, min_samples_split=50, 
+                                   loss='huber', random_state =5)
 '''
 
 
@@ -204,7 +209,7 @@ print(grid.best_params_)
 print('end:',datetime.datetime.now())
 '''
 model.fit(X_train, y_train)
-#scores = cross_val_score(model, X_train, y_train, cv=5)
+#scores = cross_val_score(model, X_train, y_train, cv=3)
 #print(scores)
 y_pred = model.predict(X_test)
 y_pred = np.exp(y_pred)

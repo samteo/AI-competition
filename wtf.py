@@ -68,7 +68,7 @@ df = df.drop(["N_10000","I_index_5000","I_index_10000","II_index_5000","II_index
               "V_index_5000","V_index_10000","VI_index_5000","VI_index_10000","VII_index_5000","VII_index_10000","VIII_index_5000","VIII_index_10000",
               "IX_index_5000","IX_index_10000","X_index_5000","X_index_10000","XI_index_10000","XII_index_5000","XII_index_10000","XIV_index_5000",
               "XIV_index_10000","building_type","town",
-              "VI_10","building_id","parking_way","parking_price","txn_floor","village"],axis=1)
+              "VI_10","building_id","parking_way","parking_price","txn_floor"],axis=1)
 for i in df.columns:
     if df[i].dtypes == "int64" or df[i].dtypes == "float64" :
         skewness1 = df[i].skew()

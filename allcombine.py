@@ -4,7 +4,7 @@ Created on Wed May 29 10:14:10 2019
 
 @author: SAM
 """
-
+import warnings
 import pandas as pd
 import numpy as np
 import datetime
@@ -60,20 +60,25 @@ df['XIV_1050']=df["XIV_10"]+df["XIV_50"]
 df = df.drop(["N_10000","I_index_5000","I_index_10000","II_index_5000","II_index_10000","III_index_5000","III_index_10000","IV_index_10000",
               "V_index_5000","V_index_10000","VI_index_5000","VI_index_10000","VII_index_5000","VII_index_10000","VIII_index_5000","VIII_index_10000",
               "IX_index_5000","IX_index_10000","X_index_5000","X_index_10000","XI_index_10000","XII_index_5000","XII_index_10000","XIV_index_5000",
-              "XIV_index_10000","village","XIV_10","XIV_50",
+              "XIV_index_10000","XIV_10","XIV_50",
               "VI_10","building_id"],axis=1)
     
 for i in df.columns:
     if df[i].dtypes == "int64" or df[i].dtypes == "float64":
         skewness1 = df[i].skew()
-        if  skewness1 >1:
-            df[i] = np.log1p(df[i])
-            skewness2 = df[i].skew()
-            print(i,skewness1,skewness2)
-        elif skewness1 < -1:
-            df[i] = np.cbrt(df[i])
-            skewness2 = df[i].skew()
-            print(i,skewness1,skewness2)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('error')
+            try:
+                if  skewness1 > 0.75:
+                    df[i] = np.log1p(df[i])
+                    skewness2 = df[i].skew()
+                    print(i,skewness1,skewness2)
+                elif skewness1 < -0.75:
+                    df[i] = np.cbrt(df[i])
+                    skewness2 = df[i].skew()
+                    print(i,skewness1,skewness2)  
+            except Warning:
+                print(i)
             
 df=pd.get_dummies(df)
 X_train_noparking = df[:60000]
@@ -86,7 +91,7 @@ y_train = np.log(y_train)
 
 print('start:',datetime.datetime.now())
 model = xgb.XGBRegressor(colsample_bytree=0.70, gamma=0.005, 
-                             learning_rate=0.02, max_depth=20, 
+                             learning_rate=0.02, max_depth=18, 
                              min_child_weight=1.1, n_estimators=4000,
                              reg_alpha=0.6, reg_lambda=0.5,
                              subsample=0.625, silent=1,

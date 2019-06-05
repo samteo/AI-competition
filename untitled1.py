@@ -4,7 +4,7 @@ Created on Thu May 16 16:26:38 2019
 
 @author: Big data
 """
-
+from sklearn.ensemble import RandomForestRegressor,  GradientBoostingRegressor
 import datetime
 import seaborn as sns
 import pandas as pd
@@ -31,7 +31,7 @@ def AVM(y_test, y_pred):
 df_train_withparking = pd.read_csv('withparking.csv')
 y = df_train_withparking.pop('total_price')
 df_test_withparking = pd.read_csv("withparking_test.csv")
-
+df_train_withparking['txn_floor']=df_train_withparking['txn_floor'].fillna(2.5)
 df=pd.concat((df_train_withparking,df_test_withparking),axis=0)
 
 for i in df.columns:
@@ -67,12 +67,18 @@ y_train = np.log(y_train)
 
 
 print('start:',datetime.datetime.now())
+'''
 model = xgb.XGBRegressor(colsample_bytree=0.4603, gamma=0.0468, 
                              learning_rate=0.05, max_depth=6, 
                              min_child_weight=1.7817, n_estimators=2200,
                              reg_alpha=0.4640, reg_lambda=0.8571,
                              subsample=0.5213, silent=1,
                              random_state =7, nthread = -1)
+'''
+model = GradientBoostingRegressor(n_estimators=3000, learning_rate=0.05,
+                                   max_depth=7, max_features='sqrt',
+                                   min_samples_leaf=35, min_samples_split=50, 
+                                   loss='huber', random_state =5)
 model.fit(X_train, y_train)
 #scores = cross_val_score(model, X_train, y_train, cv=5)
 #scores

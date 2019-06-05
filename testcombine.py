@@ -5,7 +5,7 @@ testcombine
 @author: Big data
 """
 #df["txn_floor"].where(df["txn_floor"].isna(),df["total_floor"])
-
+import warnings
 import datetime
 import seaborn as sns
 import pandas as pd
@@ -29,15 +29,37 @@ def AVM(y_test, y_pred):
     MAPE = (abs((y_pred - y_test)/y_test)).sum()/len(Z)
     score = hit_rate*10000 + (1-MAPE)
     return print(score)
-
+'''
 df_train_noparking = pd.read_csv('testcombine.csv')
 y = df_train_noparking.pop('total_price')
 df_test_noparking = pd.read_csv("testcombine_test.csv")
 df=pd.concat((df_train_noparking,df_test_noparking),axis=0)
+'''
 
+df_train_noparking = pd.read_csv('testcombine.csv')
+df_train_noparking["total_area"]=df_train_noparking['land_area'].add(df_train_noparking["building_area"])    
+df_train_noparking['money_meter']=df_train_noparking["total_price"]/df_train_noparking["total_area"]
+a=df_train_noparking["money_meter"].groupby(df_train_noparking["town1"]).mean() 
+y = df_train_noparking.pop('total_price')
+df_test_noparking = pd.read_csv("testcombine_test.csv")
+df_test_noparking["total_area"]=df_test_noparking['land_area'].add(df_test_noparking["building_area"]) 
+for i in range(len(df_train_noparking)):
+    if df_train_noparking.loc[i,"town1"] in a.index:
+        df_train_noparking.loc[i,"money_meter1"] = a[df_train_noparking.loc[i,"town1"]]
+    else: 
+        df_train_noparking.loc[i,"money_meter1"] = 424237
+for i in range(len(df_test_noparking)):
+    if df_test_noparking.loc[i,"town1"] in a.index:
+        df_test_noparking.loc[i,"money_meter1"] = a[df_test_noparking.loc[i,"town1"]]
+    else: 
+        df_test_noparking.loc[i,"money_meter1"] = 424237
+
+df=pd.concat((df_train_noparking,df_test_noparking),axis=0)
+df['txn_floor'] = df['txn_floor'].fillna(df['total_floor'])
 for i in df.columns:
     if "index" in i:
         df[i]=df[i].astype("category")
+        
 #df["txn_floor"][df["txn_floor"].isna()]= df["total_floor"][df["txn_floor"].isna()].to_numpy() #na與沒na都沒差,沒有totalfloor結果更好
 df['lat']=df['lat'].sub(-42)        
 #df["building_use"]=df["building_use"].astype("category")
@@ -55,20 +77,25 @@ df['village_income_median']=df['village_income_median'].fillna(df['village_incom
 df = df.drop(["N_10000","I_index_5000","I_index_10000","II_index_5000","II_index_10000","III_index_5000","III_index_10000","IV_index_10000",
               "V_index_5000","V_index_10000","VI_index_5000","VI_index_10000","VII_index_5000","VII_index_10000","VIII_index_5000","VIII_index_10000",
               "IX_index_5000","IX_index_10000","X_index_5000","X_index_10000","XI_index_10000","XII_index_5000","XII_index_10000","XIV_index_5000",
-              "XIV_index_10000",
+              "XIV_index_10000",'money_meter',
               "VI_10","building_id","parking_way","parking_price"],axis=1)
 
 for i in df.columns:
     if df[i].dtypes == "int64" or df[i].dtypes == "float64":
         skewness1 = df[i].skew()
-        if  skewness1 > 0.75:
-            df[i] = np.log1p(df[i])
-            skewness2 = df[i].skew()
-            print(i,skewness1,skewness2)
-        elif skewness1 < -0.75:
-            df[i] = np.power(df[i],2)
-            skewness2 = df[i].skew()
-            print(i,skewness1,skewness2)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('error')
+            try:
+                if  skewness1 > 0.75:
+                    df[i] = np.log1p(df[i])
+                    skewness2 = df[i].skew()
+                    print(i,skewness1,skewness2)
+                elif skewness1 < -0.75:
+                    df[i] = np.cbrt(df[i])
+                    skewness2 = df[i].skew()
+                    print(i,skewness1,skewness2)  
+            except Warning:
+                print(i)
             
  
 df=pd.get_dummies(df)
