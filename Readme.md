@@ -1,1 +1,1 @@
-Machine learning practice
+Machine learning competition 
